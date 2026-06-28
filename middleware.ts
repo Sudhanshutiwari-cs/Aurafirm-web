@@ -24,6 +24,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isCustomerLogin = request.nextUrl.pathname === '/account/login'
 
   if (isAdminRoute) {
     if (!user) {
@@ -33,6 +34,14 @@ export async function middleware(request: NextRequest) {
     const isAdmin = user.user_metadata?.is_admin === true
     if (!isAdmin) {
       return NextResponse.redirect(new URL('/admin-login', request.url))
+    }
+  }
+
+  // If a logged-in customer visits /account/login, send them to their orders
+  if (isCustomerLogin && user) {
+    const isAdmin = user.user_metadata?.is_admin === true
+    if (!isAdmin) {
+      return NextResponse.redirect(new URL('/account/orders', request.url))
     }
   }
 

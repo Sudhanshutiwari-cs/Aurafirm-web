@@ -7,7 +7,6 @@ import {
   Search,
   ShoppingCart,
   Heart,
-  User,
   Camera,
   AtSign,
   Share2,
@@ -25,6 +24,7 @@ import {
   MessageCircle,
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
+import UserMenu from "@/components/UserMenu"
 
 const navItems = ["Shop", "Our Story", "Why AURAFIRM", "Contact"]
 
@@ -182,9 +182,7 @@ export default function CartPage() {
             <button aria-label="Wishlist" className="transition-colors hover:text-[#b86244]">
               <Heart className="h-4.5 w-4.5" />
             </button>
-            <Link href="/account/login" aria-label="My Account" className="transition-colors hover:text-[#b86244]">
-              <User className="h-4 w-4" />
-            </Link>
+            <UserMenu />
           </div>
         </div>
       </header>

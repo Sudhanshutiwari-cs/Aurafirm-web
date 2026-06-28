@@ -17,13 +17,13 @@ import {
   Search,
   ShoppingCart,
   Heart,
-  User,
   Tag,
   Building2,
   Package,
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { createOrder, validateCoupon } from "@/lib/actions"
+import UserMenu from "@/components/UserMenu"
 
 declare global {
   interface Window {
@@ -686,7 +686,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* ── Col 4: Order Summary (sidebar) ────────────��── */}
+          {/* ── Col 4: Order Summary (sidebar) ────────────���── */}
           <div className="flex flex-col gap-4">
             {/* Secure badge */}
             <div className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
@@ -902,9 +902,7 @@ function Navbar({ itemCount }: { itemCount: number }) {
           <button aria-label="Wishlist" className="transition-colors hover:text-[#b86244]">
             <Heart className="h-4 w-4" />
           </button>
-          <Link href="/account/login" aria-label="My Account" className="transition-colors hover:text-[#b86244]">
-            <User className="h-4 w-4" />
-          </Link>
+          <UserMenu />
         </div>
       </div>
     </header>

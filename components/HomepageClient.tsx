@@ -7,7 +7,6 @@ import {
   Search,
   ShoppingCart,
   Heart,
-  User,
   Camera,
   Play,
   Share2,
@@ -31,6 +30,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
+import UserMenu from "@/components/UserMenu"
 
 const navItems = ["Shop", "Our Story", "Why AURAFIRM", "Contact"]
 
@@ -290,9 +290,7 @@ export default function LumoraLanding({ products = [] }: { products: DBProduct[]
               )}
             </Link>
             <Heart className="h-4 w-4 cursor-pointer hover:text-[#b86244]" />
-            <Link href="/account/login" aria-label="My Account" className="transition-colors hover:text-[#b86244]">
-              <User className="h-4 w-4" />
-            </Link>
+            <UserMenu />
           </div>
         </header>
 

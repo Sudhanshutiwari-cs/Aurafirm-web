@@ -19,13 +19,13 @@ import {
   Search,
   ShoppingCart,
   Heart,
-  User,
   Camera,
   AtSign,
   Play,
   MessageCircle,
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
+import UserMenu from "@/components/UserMenu"
 import ReviewSection from "@/components/ReviewSection"
 import type { Review } from "@/lib/actions"
 
@@ -186,7 +186,7 @@ export default function ProductPageClient({
             <button type="button" aria-label="Search"   className="transition-colors hover:text-[#8B4513]"><Search className="h-5 w-5" /></button>
             <Link href="/cart" aria-label="Cart"        className="transition-colors hover:text-[#8B4513]"><ShoppingCart className="h-5 w-5" /></Link>
             <button type="button" aria-label="Wishlist" className="transition-colors hover:text-[#8B4513]"><Heart className="h-5 w-5" /></button>
-            <Link href="/account/login" aria-label="My Account" className="transition-colors hover:text-[#8B4513]"><User className="h-5 w-5" /></Link>
+            <UserMenu iconClassName="h-5 w-5" />
           </div>
         </div>
       </div>
