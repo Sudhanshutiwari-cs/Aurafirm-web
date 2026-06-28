@@ -317,9 +317,12 @@ export default function LumoraLanding({ products = [] }: { products: DBProduct[]
               for radiant skin and complete wellness — every single day.
             </p>
 
-            <button className="mt-8 rounded-md bg-[#c9744e] px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#b86244]">
+            <Link
+              href="#shop-section"
+              className="mt-8 inline-block rounded-md bg-[#c9744e] px-6 py-3 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#b86244]"
+            >
               Explore Our Products
-            </button>
+            </Link>
           </div>
 
           {/* Right product visual slider */}
@@ -401,7 +404,7 @@ export default function LumoraLanding({ products = [] }: { products: DBProduct[]
       </section>
 
       {/* Shop Our Glow Heroes */}
-      <section className="mx-auto max-w-7xl px-6 py-16">
+      <section id="shop-section" className="mx-auto max-w-7xl px-6 py-16">
         <h2 className="font-sans text-3xl font-extrabold tracking-tight text-neutral-700 sm:text-4xl">
 Shop <span className="border-b-4 border-[#e3a985] text-[#c9744e]">Our Wellness</span> Heroes
         </h2>
@@ -423,8 +426,11 @@ Shop <span className="border-b-4 border-[#e3a985] text-[#c9744e]">Our Wellness</
           >
             {displayProducts.map((p) => (
               <div key={p.id} className="flex w-[180px] shrink-0 flex-col">
-                <Link href={p.slug ? `/product/${p.slug}` : "#"} className="block">
-                  <div className="flex h-[200px] items-center justify-center rounded-xl bg-[#fbede5] p-4 transition-opacity hover:opacity-90">
+                <Link
+                  href={p.slug ? `/product/${p.slug}` : "#"}
+                  className="group block"
+                >
+                  <div className="flex h-[200px] items-center justify-center rounded-xl bg-[#fbede5] p-4 transition-transform duration-200 group-hover:scale-[1.02]">
                     <Image
                       src={p.image_url || "/placeholder.svg"}
                       alt={p.name}
@@ -433,9 +439,9 @@ Shop <span className="border-b-4 border-[#e3a985] text-[#c9744e]">Our Wellness</
                       className="h-full w-auto object-contain mix-blend-multiply"
                     />
                   </div>
+                  <p className="mt-3 text-sm font-medium text-neutral-700 group-hover:text-[#c9744e]">{p.name}</p>
+                  <p className="text-sm text-neutral-500">{`\u20B9${p.price.toLocaleString("en-IN")}`}</p>
                 </Link>
-                <Link href={p.slug ? `/product/${p.slug}` : "#"} className="mt-3 text-sm font-medium text-neutral-700 hover:text-[#c9744e]">{p.name}</Link>
-                <p className="text-sm text-neutral-500">{`\u20B9${p.price.toLocaleString("en-IN")}`}</p>
                 <div className="mt-2 flex items-center gap-2">
                   <button
                     onClick={() =>
@@ -509,9 +515,12 @@ Shop <span className="border-b-4 border-[#e3a985] text-[#c9744e]">Our Wellness</
           <p className="mt-4 text-sm italic text-neutral-600">
             {"We don\u2019t just sell products \u2014 we create a lifestyle of care, confidence, and transformation."}
           </p>
-          <button className="mt-6 rounded-md bg-[#c9744e] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#b86244]">
+          <Link
+            href="#shop-section"
+            className="mt-6 inline-block rounded-md bg-[#c9744e] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-colors hover:bg-[#b86244]"
+          >
             View All Products
-          </button>
+          </Link>
         </div>
       </section>
 
