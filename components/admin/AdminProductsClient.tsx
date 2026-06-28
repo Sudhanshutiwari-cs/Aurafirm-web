@@ -8,6 +8,7 @@ import {
   ArrowLeft, Check, AlertCircle,
 } from "lucide-react"
 import { adminUpsertProduct, adminDeleteProduct, adminGetProducts } from "@/lib/actions"
+import ImageUpload from "@/components/admin/ImageUpload"
 
 type Product = Awaited<ReturnType<typeof adminGetProducts>>[number]
 
@@ -39,7 +40,7 @@ interface RichForm {
   review_count: number
   // Media
   image_url: string
-  gallery_images: string  // newline-separated URLs
+  gallery_images: string[]
   // Details
   helps_with: string      // newline-separated
   suitable_for: string    // newline-separated
@@ -61,7 +62,7 @@ function buildEmptyForm(): RichForm {
   return {
     name: "", subtitle: "", description: "", category: "serum", tags: "", is_active: true, slug: "",
     price: 0, original_price: 0, vip_price: 0, stock: 100, size_label: "", rating: 4.5, review_count: 0,
-    image_url: "", gallery_images: "",
+    image_url: "", gallery_images: [],
     helps_with: "", suitable_for: "",
     hero_ingredients: [emptyIngredient(), emptyIngredient(), emptyIngredient()],
     how_to_use_steps: [emptyStep(1), emptyStep(2), emptyStep(3)],
@@ -90,7 +91,7 @@ function productToForm(p: Product): RichForm {
     rating: Number((p as { rating?: number }).rating ?? 4.5),
     review_count: (p as { review_count?: number }).review_count ?? 0,
     image_url: p.image_url ?? "",
-    gallery_images: ((p as { gallery_images?: string[] }).gallery_images ?? []).join("\n"),
+    gallery_images: (p as { gallery_images?: string[] }).gallery_images ?? [],
     helps_with: ((p as { helps_with?: string[] }).helps_with ?? []).join("\n"),
     suitable_for: ((p as { suitable_for?: string[] }).suitable_for ?? []).join("\n"),
     hero_ingredients: ing.length > 0
@@ -204,7 +205,7 @@ export default function AdminProductsClient({ products: initial }: { products: P
         rating: form.rating,
         review_count: form.review_count,
         image_url: form.image_url,
-        gallery_images: lines(form.gallery_images),
+        gallery_images: form.gallery_images,
         helps_with: lines(form.helps_with),
         suitable_for: lines(form.suitable_for),
         hero_ingredients: form.hero_ingredients
@@ -628,56 +629,73 @@ export default function AdminProductsClient({ products: initial }: { products: P
                   <div className="space-y-6">
                     <div>
                       <h3 className="text-base font-bold text-neutral-900">Product Images</h3>
-                      <p className="mt-0.5 text-xs text-neutral-400">Main listing image and the gallery shown on the product page.</p>
+                      <p className="mt-0.5 text-xs text-neutral-400">Upload images directly to Supabase Storage. Files are stored in the <code className="rounded bg-neutral-100 px-1 py-0.5 text-[11px]">product-images</code> bucket.</p>
                     </div>
 
-                    {/* Main image side-by-side */}
+                    {/* Main image */}
                     <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-5">
                       <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-neutral-400">Main Image</p>
-                      <div className="flex gap-5">
-                        <div className="flex h-36 w-36 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                          {form.image_url
-                            ? <img src={form.image_url} alt="preview" className="h-full w-full object-contain mix-blend-multiply" />
-                            : <ImageIcon className="h-8 w-8 text-neutral-200" />
-                          }
-                        </div>
-                        <div className="flex-1">
-                          <label className={labelCls}>Image URL</label>
-                          <input
-                            value={form.image_url}
-                            onChange={(e) => set("image_url", e.target.value)}
-                            className={inputCls}
-                            placeholder="https://res.cloudinary.com/..."
-                          />
-                          <p className="mt-2 text-[11px] text-neutral-400">Use a Cloudinary or other CDN URL. Recommended size: 800×800px.</p>
-                        </div>
-                      </div>
+                      <ImageUpload
+                        value={form.image_url}
+                        onChange={(url) => set("image_url", url)}
+                        folder={`products/${form.slug || "new"}`}
+                        alt="Main product image"
+                      />
                     </div>
 
                     {/* Gallery */}
                     <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-5">
-                      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-neutral-400">Gallery Images</p>
-                      <div className="flex gap-5">
-                        <div className="flex-1">
-                          <label className={labelCls}>One URL per line</label>
-                          <textarea
-                            value={form.gallery_images}
-                            onChange={(e) => set("gallery_images", e.target.value)}
-                            rows={6}
-                            className={textareaCls}
-                            placeholder={"https://res.cloudinary.com/.../img1.jpg\nhttps://res.cloudinary.com/.../img2.jpg\nhttps://res.cloudinary.com/.../img3.jpg"}
+                      <div className="mb-4 flex items-center justify-between">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                          Gallery Images <span className="ml-1 font-normal text-neutral-400">({form.gallery_images.length} / 8)</span>
+                        </p>
+                        {form.gallery_images.length < 8 && (
+                          <ImageUpload
+                            value=""
+                            onChange={(url) => set("gallery_images", [...form.gallery_images, url])}
+                            folder={`products/${form.slug || "new"}/gallery`}
+                            compact
+                            alt="Add gallery image"
                           />
-                        </div>
-                        {lines(form.gallery_images).length > 0 && (
-                          <div className="flex shrink-0 flex-col gap-2">
-                            {lines(form.gallery_images).slice(0, 5).map((url, i) => (
-                              <div key={i} className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-white">
-                                <img src={url} alt={`g-${i}`} className="h-full w-full object-contain mix-blend-multiply" />
-                              </div>
-                            ))}
-                          </div>
                         )}
                       </div>
+
+                      {form.gallery_images.length === 0 ? (
+                        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-neutral-200 py-8 text-center">
+                          <ImageIcon className="h-8 w-8 text-neutral-200" />
+                          <p className="text-sm text-neutral-400">No gallery images yet.</p>
+                          <p className="text-xs text-neutral-300">Click the upload box above to add images.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-4 gap-3">
+                          {form.gallery_images.map((url, i) => (
+                            <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                              <img src={url} alt={`gallery-${i + 1}`} className="h-full w-full object-contain mix-blend-multiply" />
+                              {/* Hover overlay */}
+                              <div className="absolute inset-0 flex items-center justify-center gap-1.5 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                                <span className="rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-white">{i + 1}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => set("gallery_images", form.gallery_images.filter((_, idx) => idx !== i))}
+                                  className="rounded-full bg-white/90 p-1 text-red-500 hover:bg-white"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          {/* Add more slot */}
+                          {form.gallery_images.length < 8 && (
+                            <ImageUpload
+                              value=""
+                              onChange={(url) => set("gallery_images", [...form.gallery_images, url])}
+                              folder={`products/${form.slug || "new"}/gallery`}
+                              compact
+                              alt="Add gallery image"
+                            />
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -737,12 +755,21 @@ export default function AdminProductsClient({ products: initial }: { products: P
                                 </button>
                               )}
                             </div>
-                            {/* Image preview + url */}
-                            <div className="mb-3 flex items-center gap-2">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#fdf0e8]">
-                                {ing.image ? <img src={ing.image} alt="" className="h-full w-full object-contain mix-blend-multiply" /> : <Leaf className="h-4 w-4 text-[#c9744e]/40" />}
+                            {/* Ingredient image upload */}
+                            <div className="mb-3">
+                              <label className={`${labelCls} mb-2`}>Image</label>
+                              <div className="flex items-center gap-2">
+                                <ImageUpload
+                                  value={ing.image}
+                                  onChange={(url) => updateIngredient(i, "image", url)}
+                                  folder={`products/${form.slug || "new"}/ingredients`}
+                                  compact
+                                  alt={ing.title || `ingredient-${i + 1}`}
+                                />
+                                {ing.image && (
+                                  <p className="flex-1 truncate text-[10px] text-neutral-400">{ing.image.split("/").pop()}</p>
+                                )}
                               </div>
-                              <input value={ing.image} onChange={(e) => updateIngredient(i, "image", e.target.value)} className={`${inputCls} text-[11px]`} placeholder="Image URL" />
                             </div>
                             <div className="space-y-2">
                               <div>
