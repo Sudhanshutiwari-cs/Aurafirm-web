@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import {
   Search,
   ShoppingCart,
@@ -29,6 +30,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react"
+import { useCart } from "@/lib/cart-context"
 
 const navItems = ["Shop", "Our Story", "Why AURAFIRM", "Contact"]
 
@@ -165,6 +167,7 @@ const footerColumns = [
 const socialIcons = [Camera, AtSign, Share2, Play, MessageCircle]
 
 export default function LumoraLanding() {
+  const { addItem, itemCount } = useCart()
   const sliderRef = useRef<HTMLDivElement>(null)
 
   const scrollSlider = (direction: "left" | "right") => {
@@ -250,7 +253,14 @@ export default function LumoraLanding() {
 
           <div className="flex items-center gap-4 text-neutral-700">
             <Search className="h-4 w-4 cursor-pointer hover:text-[#b86244]" />
-            <ShoppingCart className="h-4 w-4 cursor-pointer hover:text-[#b86244]" />
+            <Link href="/cart" aria-label="Cart" className="relative transition-colors hover:text-[#b86244]">
+              <ShoppingCart className="h-4 w-4" />
+              {itemCount > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#c9744e] text-[9px] font-bold text-white">
+                  {itemCount}
+                </span>
+              )}
+            </Link>
             <Heart className="h-4 w-4 cursor-pointer hover:text-[#b86244]" />
             <User className="h-4 w-4 cursor-pointer hover:text-[#b86244]" />
           </div>
@@ -395,7 +405,19 @@ Shop <span className="border-b-4 border-[#e3a985] text-[#c9744e]">Our Wellness</
                 <p className="mt-3 text-sm text-neutral-700">{p.name}</p>
                 <p className="text-sm text-neutral-500">{`- \u20B9${p.price}`}</p>
                 <div className="mt-2 flex items-center gap-2">
-                  <button className="rounded-full bg-[#d4855f] px-5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#c9744e]">
+                  <button
+                    onClick={() =>
+                      addItem({
+                        id: `product-${i}`,
+                        name: p.name,
+                        subtitle: "Premium Skincare",
+                        price: parseInt(p.price.replace(",", "")),
+                        image: p.img,
+                        tags: ["Vegan", "Dermatest Tested"],
+                      })
+                    }
+                    className="rounded-full bg-[#d4855f] px-5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#c9744e]"
+                  >
                     Add to Cart
                   </button>
                   <button
