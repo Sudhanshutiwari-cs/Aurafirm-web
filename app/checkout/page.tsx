@@ -23,6 +23,7 @@ import {
   Package,
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
+import { createOrder, validateCoupon } from "@/lib/actions"
 
 declare global {
   interface Window {
@@ -103,17 +104,34 @@ export default function CheckoutPage() {
   // Coupon
   const [coupon, setCoupon] = useState("")
   const [couponApplied, setCouponApplied] = useState(false)
+  const [couponDiscount, setCouponDiscount] = useState(0)
+  const [couponMsg, setCouponMsg] = useState("")
 
   // Order state
   const [placing, setPlacing] = useState(false)
   const [orderDone, setOrderDone] = useState(false)
   const [orderId, setOrderId] = useState("")
+  const [orderNumber, setOrderNumber] = useState("")
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
   const shippingCost = delivery === "express" ? SHIPPING_EXPRESS : (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_STANDARD)
-  const discount = items.length > 0 ? DISCOUNT : 0
+  const discount = couponApplied ? couponDiscount : 0
   const tax = Math.round(subtotal * TAX_RATE)
   const grandTotal = subtotal - discount + shippingCost + tax
+
+  const handleApplyCoupon = async () => {
+    if (!coupon.trim()) return
+    const result = await validateCoupon(coupon, subtotal)
+    if (result.valid) {
+      setCouponApplied(true)
+      setCouponDiscount(result.discount ?? 0)
+      setCouponMsg(result.message ?? "")
+    } else {
+      setCouponApplied(false)
+      setCouponDiscount(0)
+      setCouponMsg(result.message ?? "")
+    }
+  }
 
   // Load Razorpay script
   useEffect(() => {
@@ -160,14 +178,77 @@ export default function CheckoutPage() {
           contact: billing.phone,
         },
         theme: { color: "#c9744e" },
-        handler: (response: { razorpay_payment_id: string; razorpay_order_id: string }) => {
-          setOrderId(response.razorpay_payment_id || response.razorpay_order_id)
+        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string }) => {
+          try {
+            const shippingAddr = shipDifferent ? shipping : {
+              fullName: billing.fullName, address: billing.address,
+              apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin,
+            }
+            const result = await createOrder({
+              customerName: billing.fullName,
+              customerEmail: billing.email,
+              customerPhone: `+91${billing.phone}`,
+              billingAddress: { address: billing.address, apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin },
+              shippingAddress: shippingAddr as Record<string, string>,
+              subtotal,
+              discount,
+              shippingCost,
+              tax,
+              grandTotal,
+              couponCode: couponApplied ? coupon : undefined,
+              paymentMethod: paymentMethod === "cod" ? "cod" : "razorpay",
+              paymentStatus: "paid",
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              deliveryMethod: delivery,
+              items: items.map((i) => ({
+                productName: i.name,
+                productImage: i.image,
+                price: i.price,
+                quantity: i.quantity,
+                total: i.price * i.quantity,
+              })),
+            })
+            setOrderId(response.razorpay_payment_id)
+            setOrderNumber(result.orderNumber)
+          } catch (e) {
+            console.error("[v0] createOrder error:", e)
+          }
           clearCart()
           setOrderDone(true)
         },
         modal: {
           ondismiss: () => setPlacing(false),
         },
+      }
+
+      if (paymentMethod === "cod") {
+        // For COD, save order directly without Razorpay
+        const shippingAddr = shipDifferent ? shipping : {
+          fullName: billing.fullName, address: billing.address,
+          apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin,
+        }
+        const result = await createOrder({
+          customerName: billing.fullName,
+          customerEmail: billing.email,
+          customerPhone: `+91${billing.phone}`,
+          billingAddress: { address: billing.address, apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin },
+          shippingAddress: shippingAddr as Record<string, string>,
+          subtotal, discount, shippingCost, tax, grandTotal,
+          couponCode: couponApplied ? coupon : undefined,
+          paymentMethod: "cod",
+          paymentStatus: "pending",
+          deliveryMethod: delivery,
+          items: items.map((i) => ({
+            productName: i.name, productImage: i.image,
+            price: i.price, quantity: i.quantity, total: i.price * i.quantity,
+          })),
+        })
+        setOrderNumber(result.orderNumber)
+        clearCart()
+        setOrderDone(true)
+        setPlacing(false)
+        return
       }
 
       const rzp = new window.Razorpay(options)
@@ -195,11 +276,14 @@ export default function CheckoutPage() {
             shipped within 24 hours. A confirmation will be sent to{" "}
             <strong>{billing.email || "your email"}</strong>.
           </p>
-          {orderId && (
+          {orderNumber && (
             <p className="rounded-lg bg-[#f5ece6] px-4 py-2 text-xs font-mono text-neutral-700">
-              Payment ID: {orderId}
+              Order Number: <strong>{orderNumber}</strong>
             </p>
           )}
+          <p className="rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
+            Your account has been created. Login with your mobile number to track orders.
+          </p>
           <div className="flex gap-3">
             <Link
               href="/"
@@ -208,7 +292,7 @@ export default function CheckoutPage() {
               Continue Shopping
             </Link>
             <Link
-              href="/"
+              href="/account/orders"
               className="rounded-xl border border-[#c9744e] px-8 py-3 text-sm font-bold text-[#c9744e] transition-colors hover:bg-[#fdf6f2]"
             >
               Track Order
@@ -673,22 +757,29 @@ export default function CheckoutPage() {
               </div>
 
               {/* Coupon */}
-              <div className="mt-4 flex gap-2">
-                <div className="relative flex-1">
-                  <Tag className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
-                  <input
-                    className="w-full rounded-lg border border-[#e3c8bb] bg-[#faf5f3] py-2.5 pl-8 pr-3 text-sm placeholder-neutral-400 outline-none focus:border-[#c9744e] focus:ring-1 focus:ring-[#c9744e]/30"
-                    placeholder="Coupon Code"
-                    value={coupon}
-                    onChange={(e) => setCoupon(e.target.value)}
-                  />
+              <div className="mt-4">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      className="w-full rounded-lg border border-[#e3c8bb] bg-[#faf5f3] py-2.5 pl-8 pr-3 text-sm placeholder-neutral-400 outline-none focus:border-[#c9744e] focus:ring-1 focus:ring-[#c9744e]/30"
+                      placeholder="Coupon Code"
+                      value={coupon}
+                      onChange={(e) => { setCoupon(e.target.value); setCouponApplied(false); setCouponMsg("") }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleApplyCoupon}
+                    className="rounded-lg bg-[#8B4513] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#7a3c10]"
+                  >
+                    {couponApplied ? <Check className="h-4 w-4" /> : "Apply"}
+                  </button>
                 </div>
-                <button
-                  onClick={() => coupon && setCouponApplied(true)}
-                  className="rounded-lg bg-[#8B4513] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#7a3c10]"
-                >
-                  {couponApplied ? <Check className="h-4 w-4" /> : "Apply"}
-                </button>
+                {couponMsg && (
+                  <p className={`mt-1 text-xs ${couponApplied ? "text-green-600" : "text-red-500"}`}>
+                    {couponMsg}
+                  </p>
+                )}
               </div>
 
               {/* Place Order button */}
