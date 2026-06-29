@@ -144,8 +144,27 @@ export default function CheckoutPage() {
   const updateShipping = (field: string, value: string) =>
     setShipping((p) => ({ ...p, [field]: value }))
 
+  const isBillingValid =
+    billing.fullName.trim() !== "" &&
+    billing.email.trim() !== "" &&
+    billing.phone.trim().replace(/\D/g, "").length === 10 &&
+    billing.address.trim() !== "" &&
+    billing.city.trim() !== "" &&
+    billing.state !== "" &&
+    billing.pin.trim().length === 6
+
+  const isShippingValid = !shipDifferent || (
+    shipping.fullName.trim() !== "" &&
+    shipping.address.trim() !== "" &&
+    shipping.city.trim() !== "" &&
+    shipping.state !== "" &&
+    shipping.pin.trim().length === 6
+  )
+
+  const isFormValid = isBillingValid && isShippingValid && items.length > 0
+
   const handlePlaceOrder = async () => {
-    if (items.length === 0) return
+    if (!isFormValid) return
     setPlacing(true)
 
     try {
@@ -758,12 +777,18 @@ export default function CheckoutPage() {
               {/* Place Order button */}
               <button
                 onClick={handlePlaceOrder}
-                disabled={placing || items.length === 0}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#8B4513] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#7a3c10] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={placing || !isFormValid}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#8B4513] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#7a3c10] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Lock className="h-4 w-4" />
                 {placing ? "Processing..." : "Place Order"}
               </button>
+
+              {!isFormValid && items.length > 0 && (
+                <p className="mt-2 text-center text-[11px] text-red-500">
+                  Please fill in all required fields before placing your order.
+                </p>
+              )}
 
               <p className="mt-3 text-[11px] leading-relaxed text-neutral-500">
                 By placing this order, you agree to our{" "}
