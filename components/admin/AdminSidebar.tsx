@@ -47,15 +47,16 @@ export default function AdminSidebar({ pendingCount = 0 }: { pendingCount?: numb
   return (
     <aside className="flex w-52 shrink-0 flex-col bg-white border-r border-neutral-100 h-screen sticky top-0">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-neutral-100">
-        <Image
-          src="https://res.cloudinary.com/df01whs60/image/upload/v1782241556/front-profile_page-0001-removebg-preview_syyqyk.png"
-          alt="Aurafirm"
-          width={28}
-          height={28}
-          className="object-contain"
-        />
-        <span className="text-sm font-bold text-neutral-800 tracking-tight">AURAFIRM</span>
+      <div className="flex items-center justify-center px-5 py-4 border-b border-neutral-100">
+        <Link href="/admin">
+          <Image
+            src="https://res.cloudinary.com/df01whs60/image/upload/v1782242359/AURAFIRM_logo_PNG_160x_drciiz.avif"
+            alt="AURAFIRM logo"
+            width={130}
+            height={44}
+            className="object-contain"
+          />
+        </Link>
       </div>
 
       {/* Nav */}

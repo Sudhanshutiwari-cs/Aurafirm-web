@@ -59,8 +59,12 @@ export default function ContactPage() {
       {/* Navbar */}
       <header className="sticky top-0 z-30 border-b border-[#f0e0d6] bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-lg font-extrabold tracking-tight text-neutral-900">AURAFIRM</span>
+          <Link href="/" aria-label="AURAFIRM home">
+            <img
+              src="https://res.cloudinary.com/df01whs60/image/upload/v1782242359/AURAFIRM_logo_PNG_160x_drciiz.avif"
+              alt="AURAFIRM logo"
+              className="h-10 w-auto object-contain"
+            />
           </Link>
           <nav className="hidden items-center gap-6 text-sm font-medium text-neutral-600 md:flex">
             <Link href="/" className="hover:text-neutral-900">Home</Link>

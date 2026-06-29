@@ -69,11 +69,12 @@ export default function AdminTopbar({ adminName }: { adminName: string }) {
     <>
       <header className="flex h-14 shrink-0 items-center justify-between border-b border-white/20 bg-[#7d3c1f] px-6">
         {/* Logo — links to dashboard */}
-        <Link
-          href="/admin"
-          className="text-sm font-bold tracking-widest text-white/90 uppercase hover:text-white transition-colors"
-        >
-          AURAFIRM
+        <Link href="/admin" aria-label="AURAFIRM admin home">
+          <img
+            src="https://res.cloudinary.com/df01whs60/image/upload/v1782242359/AURAFIRM_logo_PNG_160x_drciiz.avif"
+            alt="AURAFIRM logo"
+            className="h-8 w-auto object-contain brightness-0 invert"
+          />
         </Link>
 
         {/* Right side actions */}
