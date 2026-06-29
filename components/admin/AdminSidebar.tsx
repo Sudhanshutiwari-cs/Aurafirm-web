@@ -51,27 +51,27 @@ export default function AdminSidebar({ pendingCount = 0 }: { pendingCount?: numb
   return (
     <aside className="flex w-52 shrink-0 flex-col bg-white border-r border-neutral-100 h-screen sticky top-0">
       {/* Logo */}
-      <div className="flex items-center justify-center px-5 py-4 border-b border-neutral-100">
+      <div className="flex items-center justify-center px-4 py-3 border-b border-neutral-100">
         <Link href="/admin">
           <Image
             src="https://res.cloudinary.com/df01whs60/image/upload/v1782242359/AURAFIRM_logo_PNG_160x_drciiz.avif"
             alt="AURAFIRM logo"
-            width={130}
-            height={44}
+            width={110}
+            height={38}
             className="object-contain"
           />
         </Link>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-hidden">
         {navItems.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || (href !== "/admin" && pathname.startsWith(href))
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors ${
                 active
                   ? "bg-[#fdf0e8] text-[#c9744e]"
                   : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-800"
@@ -90,10 +90,10 @@ export default function AdminSidebar({ pendingCount = 0 }: { pendingCount?: numb
       </nav>
 
       {/* Logout */}
-      <div className="border-t border-neutral-100 px-3 py-4">
+      <div className="border-t border-neutral-100 px-3 py-3">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-800"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-1.5 text-sm font-medium text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-800"
         >
           <LogOut className="h-4 w-4" />
           Logout
