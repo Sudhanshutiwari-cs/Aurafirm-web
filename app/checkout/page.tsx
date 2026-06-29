@@ -68,10 +68,8 @@ const trustBadges = [
 ]
 
 const DISCOUNT = 200
-const SHIPPING_STANDARD = 0
 const SHIPPING_EXPRESS = 149
 const TAX_RATE = 0.18
-const FREE_SHIPPING_THRESHOLD = 999
 
 type PaymentMethod = "upi" | "card" | "netbanking" | "cod"
 
@@ -115,7 +113,7 @@ export default function CheckoutPage() {
   const [orderError, setOrderError] = useState("")
 
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
-  const shippingCost = delivery === "express" ? SHIPPING_EXPRESS : (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_STANDARD)
+  const shippingCost = delivery === "express" ? SHIPPING_EXPRESS : 0
   const discount = couponApplied ? couponDiscount : 0
   const tax = Math.round(subtotal * TAX_RATE)
   const grandTotal = subtotal - discount + shippingCost + tax
@@ -552,8 +550,8 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold text-[#c9744e]">FREE</p>
-                    <p className="text-[10px] text-neutral-500">On orders above ₹{FREE_SHIPPING_THRESHOLD}</p>
+                    <p className="text-xs font-bold text-[#6b8f5e]">FREE</p>
+                    <p className="text-[10px] text-neutral-500">Always free on all orders</p>
                   </div>
                   <input
                     type="radio"

@@ -81,9 +81,7 @@ const footerColumns = [
   },
 ]
 
-const FREE_SHIPPING_THRESHOLD = 1999
 const DISCOUNT = 200
-const SHIPPING = 99
 const TAX_RATE = 0.18
 
 export default function CartPage() {
@@ -93,12 +91,9 @@ export default function CartPage() {
   const [wishlistSuggested, setWishlistSuggested] = useState<Set<string>>(new Set())
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING
+  const shippingCost = 0
   const tax = Math.round(subtotal * TAX_RATE)
   const grandTotal = subtotal - DISCOUNT + shippingCost + tax
-
-  const amountToFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
-  const freeShippingProgress = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
 
   const toggleWishlist = (id: string) => {
     setWishlist((prev) => {
@@ -599,22 +594,9 @@ export default function CartPage() {
 
           {/* Footer bottom */}
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-[#f0d8c8] pt-6 text-xs text-neutral-500">
-            <p>
-              Copyright &copy; 2025{" "}
-              <a href="#" className="font-semibold text-[#c9744e] hover:underline">
-                Aurafirm
-              </a>
-              . All Rights Reserved.
-            </p>
-            <div className="flex items-center gap-4">
-              <select className="rounded border border-[#e3c8bb] bg-transparent px-2 py-1 text-xs text-neutral-600">
-                <option>English</option>
-              </select>
-              <select className="rounded border border-[#e3c8bb] bg-transparent px-2 py-1 text-xs text-neutral-600">
-                <option>USD</option>
-                <option>INR</option>
-              </select>
-            </div>
+                    <span className="font-semibold text-[#6b8f5e]">
+                      Free Shipping on all orders!
+                    </span>
           </div>
         </div>
       </footer>
