@@ -39,7 +39,7 @@ export default function Navbar() {
             href="https://www.amazon.in"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center rounded bg-white px-2.5 py-0.5 transition-opacity hover:opacity-90"
+            className="flex h-7 items-center rounded bg-white px-2.5 transition-opacity hover:opacity-90"
           >
             <img
               src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/amazon/default.svg"
@@ -52,12 +52,12 @@ export default function Navbar() {
             href="https://www.flipkart.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center rounded bg-white px-2.5 py-0.5 transition-opacity hover:opacity-90"
+            className="flex h-7 items-center rounded bg-white px-2.5 transition-opacity hover:opacity-90"
           >
             <img
               src="https://res.cloudinary.com/dgydmwvvm/image/upload/v1782744189/download-removebg-preview_rhfgf8.png"
               alt="Flipkart"
-              className="h-5 sm:h-6 w-auto"
+              className="h-4 w-auto"
             />
           </a>
         </div>
