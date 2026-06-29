@@ -107,10 +107,8 @@ export interface CreateOrderPayload {
 }
 
 export async function createOrder(payload: CreateOrderPayload) {
-  const supabase = await createClient()
-  // Use service-role client for account management so we can:
-  // 1. Create confirmed accounts (no email verification needed)
-  // 2. Bypass RLS when upserting profiles
+  // Always use service-role admin client — customer is not authenticated
+  // at checkout time, so the anon client would be blocked by RLS on every table
   const adminSupabase = createAdminClient()
 
   // Normalize to exactly 10 digits — strip country code (91/+91) if present
@@ -159,12 +157,12 @@ export async function createOrder(payload: CreateOrderPayload) {
     }, { onConflict: 'id' })
   }
 
-  // Generate order number
-  const { data: orderNumData } = await supabase.rpc('generate_order_number')
+  // Generate order number — use admin client to bypass RLS
+  const { data: orderNumData } = await adminSupabase.rpc('generate_order_number')
   const orderNumber = orderNumData as string
 
-  // Insert order
-  const { data: order, error: orderError } = await supabase
+  // Insert order — use admin client: customer is not logged in at checkout time
+  const { data: order, error: orderError } = await adminSupabase
     .from('orders')
     .insert({
       order_number: orderNumber,
@@ -192,7 +190,7 @@ export async function createOrder(payload: CreateOrderPayload) {
 
   if (orderError) throw orderError
 
-  // Insert order items
+  // Insert order items — admin client, same reason
   const orderItems = payload.items.map((item) => ({
     order_id: order.id,
     product_id: item.productId ?? null,
@@ -203,7 +201,7 @@ export async function createOrder(payload: CreateOrderPayload) {
     total: item.total,
   }))
 
-  const { error: itemsError } = await supabase.from('order_items').insert(orderItems)
+  const { error: itemsError } = await adminSupabase.from('order_items').insert(orderItems)
   if (itemsError) throw itemsError
 
   revalidatePath('/account/orders')

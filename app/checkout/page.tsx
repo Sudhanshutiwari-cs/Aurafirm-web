@@ -151,9 +151,41 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     if (items.length === 0) return
     setPlacing(true)
+    console.log("[v0] handlePlaceOrder called, paymentMethod:", paymentMethod)
 
     try {
-      // Create Razorpay order on server
+      // COD: skip Razorpay entirely
+      if (paymentMethod === "cod") {
+        const shippingAddr = shipDifferent ? shipping : {
+          fullName: billing.fullName, address: billing.address,
+          apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin,
+        }
+        console.log("[v0] COD order starting, phone:", billing.phone)
+        const result = await createOrder({
+          customerName: billing.fullName,
+          customerEmail: billing.email,
+          customerPhone: `+91${billing.phone}`,
+          billingAddress: { address: billing.address, apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin },
+          shippingAddress: shippingAddr as Record<string, string>,
+          subtotal, discount, shippingCost, tax, grandTotal,
+          couponCode: couponApplied ? coupon : undefined,
+          paymentMethod: "cod",
+          paymentStatus: "pending",
+          deliveryMethod: delivery,
+          items: items.map((i) => ({
+            productName: i.name, productImage: i.image,
+            price: i.price, quantity: i.quantity, total: i.price * i.quantity,
+          })),
+        })
+        console.log("[v0] COD order created:", result.orderNumber)
+        setOrderNumber(result.orderNumber)
+        clearCart()
+        setOrderDone(true)
+        setPlacing(false)
+        return
+      }
+
+      // Online payment: create Razorpay order on server
       const res = await fetch("/api/razorpay/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -220,35 +252,6 @@ export default function CheckoutPage() {
         modal: {
           ondismiss: () => setPlacing(false),
         },
-      }
-
-      if (paymentMethod === "cod") {
-        // For COD, save order directly without Razorpay
-        const shippingAddr = shipDifferent ? shipping : {
-          fullName: billing.fullName, address: billing.address,
-          apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin,
-        }
-        const result = await createOrder({
-          customerName: billing.fullName,
-          customerEmail: billing.email,
-          customerPhone: `+91${billing.phone}`,
-          billingAddress: { address: billing.address, apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin },
-          shippingAddress: shippingAddr as Record<string, string>,
-          subtotal, discount, shippingCost, tax, grandTotal,
-          couponCode: couponApplied ? coupon : undefined,
-          paymentMethod: "cod",
-          paymentStatus: "pending",
-          deliveryMethod: delivery,
-          items: items.map((i) => ({
-            productName: i.name, productImage: i.image,
-            price: i.price, quantity: i.quantity, total: i.price * i.quantity,
-          })),
-        })
-        setOrderNumber(result.orderNumber)
-        clearCart()
-        setOrderDone(true)
-        setPlacing(false)
-        return
       }
 
       const rzp = new window.Razorpay(options)
