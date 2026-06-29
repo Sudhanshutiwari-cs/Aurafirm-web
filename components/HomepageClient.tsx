@@ -263,7 +263,7 @@ export default function LumoraLanding({ products = [] }: { products: DBProduct[]
           </a>
           <span className="text-white/40">&</span>
           <a href="https://www.flipkart.com" target="_blank" rel="noopener noreferrer" className="flex items-center rounded bg-white px-2.5 py-0.5 transition-opacity hover:opacity-90">
-            <img src="/flipkart-logo.svg" alt="Flipkart" className="h-5 sm:h-6 w-auto" />
+            <img src="https://res.cloudinary.com/dgydmwvvm/image/upload/v1782744189/download-removebg-preview_rhfgf8.png" alt="Flipkart" className="h-5 sm:h-6 w-auto" />
           </a>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
