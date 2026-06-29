@@ -63,7 +63,7 @@ const suggestedProducts = [
 ]
 
 const trustBadges = [
-  { icon: Truck, title: "Free Shipping", sub: "On orders above ₹999" },
+  { icon: Truck, title: "Free Shipping", sub: "On all orders" },
   { icon: Lock, title: "Secure Payment", sub: "100% protected" },
   { icon: ShieldCheck, title: "Dermatest Tested", sub: "Safe for sensitive skin" },
   { icon: Leaf, title: "Vegan", sub: "Plant Powered" },
@@ -80,7 +80,6 @@ const footerColumns = [
   },
 ]
 
-const DISCOUNT = 200
 const TAX_RATE = 0.18
 
 export default function CartPage() {
@@ -91,7 +90,7 @@ export default function CartPage() {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const shippingCost = 0
   const tax = Math.round(subtotal * TAX_RATE)
-  const grandTotal = subtotal - DISCOUNT + shippingCost + tax
+  const grandTotal = subtotal + shippingCost + tax
 
   const toggleWishlist = (id: string) => {
     setWishlist((prev) => {
@@ -401,12 +400,8 @@ export default function CartPage() {
                   <span className="text-neutral-600">Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
                   <span className="font-semibold">₹{subtotal.toLocaleString("en-IN")}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-600">Discount</span>
-                  <span className="font-semibold text-[#c9744e]">-₹{DISCOUNT}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-600">Shipping</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-neutral-600">Shipping</span>
                   <span className="font-semibold">
                     {shippingCost === 0 ? (
                       <span className="text-[#6b8f5e]">Free</span>
