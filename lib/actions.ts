@@ -402,6 +402,194 @@ export async function adminGetDashboardStats() {
   }
 }
 
+// ─── Contact Messages ─────────────────────────────────────────────────────────
+
+export async function submitContactMessage(payload: {
+  name: string
+  email: string
+  phone?: string
+  subject: string
+  message: string
+}) {
+  const supabase = await createClient()
+  const { error } = await supabase.from('contact_messages').insert({
+    name: payload.name,
+    email: payload.email,
+    phone: payload.phone ?? null,
+    subject: payload.subject,
+    message: payload.message,
+  })
+  if (error) throw error
+  return { success: true }
+}
+
+export async function adminGetContactMessages() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function adminUpdateContactStatus(id: string, status: 'read' | 'replied') {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('contact_messages')
+    .update({ status })
+    .eq('id', id)
+  if (error) throw error
+  revalidatePath('/admin/contacts')
+}
+
+// ─── Our Story ───────────────────────────────────────────────────────────────
+
+export async function getOurStoryContent() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('our_story_content')
+    .select('*')
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function getOurStoryMilestones() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('our_story_milestones')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function getOurStoryValues() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('our_story_values')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function adminGetOurStoryData() {
+  const supabase = createAdminClient()
+  const [{ data: content }, { data: milestones }, { data: values }] = await Promise.all([
+    supabase.from('our_story_content').select('*').single(),
+    supabase.from('our_story_milestones').select('*').order('sort_order'),
+    supabase.from('our_story_values').select('*').order('sort_order'),
+  ])
+  return { content, milestones: milestones ?? [], values: values ?? [] }
+}
+
+export async function adminUpdateOurStoryContent(patch: Record<string, string>) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('our_story_content')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', '00000000-0000-0000-0000-000000000001')
+  if (error) throw error
+  revalidatePath('/about')
+  revalidatePath('/admin/our-story')
+}
+
+export async function adminUpsertOurStoryMilestone(row: {
+  id?: string; sort_order: number; year: string; title: string; description: string; is_active: boolean
+}) {
+  const supabase = createAdminClient()
+  const { error } = await supabase.from('our_story_milestones').upsert(row)
+  if (error) throw error
+  revalidatePath('/about')
+  revalidatePath('/admin/our-story')
+}
+
+export async function adminDeleteOurStoryMilestone(id: string) {
+  const supabase = createAdminClient()
+  const { error } = await supabase.from('our_story_milestones').delete().eq('id', id)
+  if (error) throw error
+  revalidatePath('/about')
+  revalidatePath('/admin/our-story')
+}
+
+export async function adminUpsertOurStoryValue(row: {
+  id?: string; sort_order: number; icon: string; title: string; description: string; is_active: boolean
+}) {
+  const supabase = createAdminClient()
+  const { error } = await supabase.from('our_story_values').upsert(row)
+  if (error) throw error
+  revalidatePath('/about')
+  revalidatePath('/admin/our-story')
+}
+
+export async function adminDeleteOurStoryValue(id: string) {
+  const supabase = createAdminClient()
+  const { error } = await supabase.from('our_story_values').delete().eq('id', id)
+  if (error) throw error
+  revalidatePath('/about')
+  revalidatePath('/admin/our-story')
+}
+
+// ─── Why AURAFIRM Pillars ─────────────────────────────────────────────────────
+
+export async function getWhyPillars() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('why_aurafirm_pillars')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function adminGetAllWhyPillars() {
+  const supabase = createAdminClient()
+  const { data, error } = await supabase
+    .from('why_aurafirm_pillars')
+    .select('*')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function adminUpsertWhyPillar(pillar: {
+  id?: string
+  sort_order: number
+  icon: string
+  title: string
+  subtitle: string
+  description: string
+  stat_value: string
+  stat_label: string
+  is_active: boolean
+}) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('why_aurafirm_pillars')
+    .upsert({ ...pillar, updated_at: new Date().toISOString() })
+  if (error) throw error
+  revalidatePath('/why-aurafirm')
+  revalidatePath('/admin/why-aurafirm')
+}
+
+export async function adminDeleteWhyPillar(id: string) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('why_aurafirm_pillars')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+  revalidatePath('/why-aurafirm')
+  revalidatePath('/admin/why-aurafirm')
+}
+
+// ─── Customers ────────────────────────────────────────────────────────────────
+
 export async function adminGetCustomers() {
   const supabase = createAdminClient()
   // Join profiles with orders to get order count and total spend
@@ -426,7 +614,7 @@ export async function adminGetCustomers() {
   })
 }
 
-// ─── Coupons ────────────────────────────────────────────────────────────────────
+// ─── Coupons ───────────────────────────────────────────���────────────────────────
 
 export async function adminGetCoupons() {
   const supabase = createAdminClient()
@@ -471,7 +659,7 @@ export async function adminToggleCoupon(id: string, is_active: boolean) {
   revalidatePath('/admin/coupons')
 }
 
-// ─── Inventory ──────────────────────────────────────────────────────────────────
+// ─── Inventory ──────────────────────────────────────────��───────────────────────
 
 export async function adminUpdateStock(productId: string, stock: number) {
   const supabase = createAdminClient()

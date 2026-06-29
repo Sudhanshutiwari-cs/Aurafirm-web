@@ -841,11 +841,16 @@ function AnnouncementBar() {
     <div className="bg-[#8B4513] text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 md:px-6">
         <span className="hidden flex-1 md:block" />
-        <p className="flex-1 text-center text-[10px] sm:text-xs">
-          {"♡ Vegan \u2022 100% cruelty free & plant powered | "}
-          <span className="font-semibold">Dermatest Tested</span>
-          {" \u2013 Safe for sensitive skin \uD83C\uDF31"}
-        </p>
+          <div className="flex flex-1 items-center justify-center gap-3">
+            <span className="text-white/80 text-[10px] sm:text-xs">Also available on</span>
+            <a href="https://www.amazon.in" target="_blank" rel="noopener noreferrer" className="flex items-center rounded bg-white px-2.5 py-0.5 transition-opacity hover:opacity-90">
+              <img src="https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/amazon/default.svg" alt="Amazon" className="h-3.5 sm:h-4 w-auto" />
+            </a>
+            <span className="text-white/40 text-[10px]">&</span>
+            <a href="https://www.flipkart.com" target="_blank" rel="noopener noreferrer" className="flex items-center rounded bg-white px-2.5 py-0.5 transition-opacity hover:opacity-90">
+              <img src="https://res.cloudinary.com/dgydmwvvm/image/upload/v1782744189/download-removebg-preview_rhfgf8.png" alt="Flipkart" className="h-5 sm:h-6 w-auto" />
+            </a>
+          </div>
         <div className="flex flex-1 items-center justify-end gap-3 text-white/90">
           <a href="#" aria-label="Photos"><Camera className="h-3.5 w-3.5" /></a>
           <a href="#" aria-label="Share"><Share2 className="h-3.5 w-3.5" /></a>
