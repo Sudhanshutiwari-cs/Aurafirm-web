@@ -815,17 +815,37 @@ export async function adminGetAnalyticsData() {
 
 export async function adminGetTopProducts() {
   const supabase = createAdminClient()
-  const { data: items, error } = await supabase
-    .from('order_items')
-    .select('product_id, product_name, product_image, total, quantity')
+
+  const [{ data: items, error }, { data: products }] = await Promise.all([
+    supabase.from('order_items').select('product_id, product_name, product_image, total, quantity'),
+    supabase.from('products').select('id, name, image_url'),
+  ])
   if (error) return []
+
+  // Build a lookup from product id and name → image_url for missing images
+  const imageById: Record<string, string>   = {}
+  const imageByName: Record<string, string> = {}
+  for (const p of products ?? []) {
+    if (p.image_url) {
+      imageById[p.id]       = p.image_url
+      imageByName[p.name?.toLowerCase()] = p.image_url
+    }
+  }
 
   const map: Record<string, { id: string; name: string; image: string | null; revenue: number; units: number }> = {}
   for (const item of items ?? []) {
     const key = item.product_id ?? item.product_name
-    if (!map[key]) map[key] = { id: key, name: item.product_name, image: item.product_image, revenue: 0, units: 0 }
+    if (!map[key]) {
+      // Resolve image: prefer snapshot on order_item, fall back to live product
+      const image =
+        item.product_image ||
+        (item.product_id ? imageById[item.product_id] : null) ||
+        imageByName[item.product_name?.toLowerCase()] ||
+        null
+      map[key] = { id: key, name: item.product_name, image, revenue: 0, units: 0 }
+    }
     map[key].revenue += item.total ?? 0
-    map[key].units += item.quantity ?? 0
+    map[key].units   += item.quantity ?? 0
   }
   return Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
 }
