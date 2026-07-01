@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     description:
       'Science-backed skincare and wellness supplements formulated for Indian skin.',
     images: ['/og-image.jpg'],
-    creator: '@aurafirm',
+    creator: '@aurafirm_',
   },
   icons: {
     icon: [

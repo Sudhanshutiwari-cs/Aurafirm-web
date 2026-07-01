@@ -72,7 +72,7 @@ const footerColumns = [
   { title: "Our Information", links: ["Privacy", "User Terms & Condition", "Return Policy"] },
   {
     title: "Contact Info",
-    links: ["+1 (123) 456 - 789", "care@aurafirm.com", "B-902, Preston Rd.\nInglewood, Maine 96880"],
+    links: ["+91 87500 89105", "aurafirm0@gmail.com", "Plot No.2, Khasra No.51/1,\nJai Vihar, Najafgarh,\nNew Delhi – 110043"],
     isContact: true,
   },
 ]

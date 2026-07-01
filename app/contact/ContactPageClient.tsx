@@ -78,17 +78,17 @@ export default function ContactPage() {
               {
                 icon: Phone,
                 label: "Phone Support",
-                lines: ["+91 98765 43210", "Mon – Sat, 10am – 6pm"],
+                lines: ["+91 87500 89105", "Mon – Sat, 10am – 6pm"],
               },
               {
                 icon: Mail,
                 label: "Email Us",
-                lines: ["support@aurafirm.in", "We reply within 24 hours"],
+                lines: ["aurafirm0@gmail.com", "We reply within 24 hours"],
               },
               {
                 icon: MapPin,
                 label: "Our Office",
-                lines: ["Aurafirm Wellness Pvt. Ltd.", "Mumbai, Maharashtra, India"],
+                lines: ["Plot No.2, Khasra No.51/1, Jai Vihar,", "Najafgarh, New Delhi – 110043"],
               },
               {
                 icon: Clock,
