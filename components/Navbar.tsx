@@ -8,9 +8,6 @@ import {
   Heart,
   Search,
   Camera,
-  AtSign,
-  Share2,
-  Play,
   Menu,
   X,
 } from "lucide-react"
@@ -61,12 +58,15 @@ export default function Navbar() {
             />
           </a>
         </div>
-        <div className="hidden items-center gap-3 sm:flex">
+        <a
+          href="https://www.instagram.com/aurafirm_"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+          className="hidden items-center sm:flex text-white/80 hover:text-white transition-colors"
+        >
           <Camera className="h-3.5 w-3.5" />
-          <AtSign className="h-3.5 w-3.5" />
-          <Share2 className="h-3.5 w-3.5" />
-          <Play className="h-3.5 w-3.5" />
-        </div>
+        </a>
       </div>
 
       {/* Main navbar */}

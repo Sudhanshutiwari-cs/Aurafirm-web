@@ -150,7 +150,7 @@ export default function OurStoryClient({
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <Sprout className="h-16 w-16 text-[#c9744e]/40" />
+                  <FlaskConical className="h-16 w-16 text-[#c9744e]/40" />
                 </div>
               )}
             </div>
