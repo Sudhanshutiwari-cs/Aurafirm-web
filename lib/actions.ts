@@ -184,7 +184,9 @@ export async function createOrder(payload: CreateOrderPayload) {
       razorpay_order_id: payload.razorpayOrderId ?? null,
       razorpay_payment_id: payload.razorpayPaymentId ?? null,
       delivery_method: payload.deliveryMethod,
-      status: payload.paymentMethod === 'cod' ? 'pending' : 'processing',
+      // Only move to "processing" once payment is confirmed. Unpaid online
+      // orders (awaiting Razorpay redirect callback) and COD stay "pending".
+      status: payload.paymentStatus === 'paid' ? 'processing' : 'pending',
     })
     .select()
     .single()
@@ -235,6 +237,42 @@ export async function verifyRazorpayPayment(params: {
   const valid = a.length === b.length && crypto.timingSafeEqual(a, b)
 
   return { valid }
+}
+
+// Finalize a pending Razorpay order after the payment redirect/callback.
+// Verifies the signature, then marks the matching pending order as paid.
+// Returns the order_number so the caller can redirect to the success page.
+export async function finalizeRazorpayOrder(params: {
+  razorpayOrderId: string
+  razorpayPaymentId: string
+  razorpaySignature: string
+}): Promise<{ ok: boolean; orderNumber?: string }> {
+  const { valid } = await verifyRazorpayPayment(params)
+  if (!valid) {
+    console.error('[v0] finalizeRazorpayOrder: invalid signature')
+    return { ok: false }
+  }
+
+  const adminSupabase = createAdminClient()
+
+  const { data: order, error } = await adminSupabase
+    .from('orders')
+    .update({
+      payment_status: 'paid',
+      razorpay_payment_id: params.razorpayPaymentId,
+      status: 'processing',
+    })
+    .eq('razorpay_order_id', params.razorpayOrderId)
+    .select('order_number')
+    .single()
+
+  if (error || !order) {
+    console.error('[v0] finalizeRazorpayOrder: order not found', error?.message)
+    return { ok: false }
+  }
+
+  revalidatePath('/account/orders')
+  return { ok: true, orderNumber: order.order_number as string }
 }
 
 // ─── Customer orders ───────────────────────────────────────────────────────────
