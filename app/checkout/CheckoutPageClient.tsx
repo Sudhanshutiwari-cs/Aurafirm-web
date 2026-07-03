@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { createOrder, validateCoupon } from "@/lib/actions"
-import SiteNavbar from "@/components/Navbar"
 
 declare global {
   interface Window {
@@ -203,7 +202,7 @@ export default function CheckoutPage() {
         key: data.keyId,
         amount: data.amount,
         currency: data.currency,
-        name: "Aurafirm",
+        name: "AURAFIRM",
         description: "Skincare & Wellness Products",
         image: "https://res.cloudinary.com/df01whs60/image/upload/v1782242359/AURAFIRM_logo_PNG_160x_drciiz.avif",
         order_id: data.orderId,
@@ -277,7 +276,7 @@ export default function CheckoutPage() {
             Order <span className="text-[#c9744e]">Confirmed!</span>
           </h1>
           <p className="text-sm leading-relaxed text-neutral-600">
-            Thank you for shopping with Aurafirm. Your order has been placed successfully and will be
+            Thank you for shopping with AURAFIRM. Your order has been placed successfully and will be
             shipped within 24 hours. A confirmation will be sent to{" "}
             <strong>{billing.email || "your email"}</strong>.
           </p>
@@ -312,8 +311,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#faf5f3] font-sans text-neutral-800">
-      <SiteNavbar />
-
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         {/* Heading + breadcrumb */}
         <div className="mb-6">

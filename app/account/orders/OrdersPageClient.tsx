@@ -7,16 +7,35 @@ import { useRouter } from "next/navigation"
 import {
   Package,
   ChevronRight,
-  LogOut,
   Clock,
   CheckCircle,
   Truck,
   XCircle,
   RotateCcw,
   ShoppingBag,
+  ExternalLink,
+  AlertTriangle,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import { getMyOrders } from "@/lib/actions"
+import { getMyOrders, cancelMyOrder } from "@/lib/actions"
+
+// Order statuses at which the customer can still cancel (before it ships)
+const CANCELLABLE = ["pending", "processing"]
+
+// Build a best-effort tracking URL from carrier + tracking id when no explicit URL is stored
+function buildTrackingUrl(carrier?: string | null, trackingId?: string | null): string | null {
+  if (!trackingId) return null
+  const c = (carrier ?? "").toLowerCase()
+  if (c.includes("delhivery")) return `https://www.delhivery.com/track/package/${trackingId}`
+  if (c.includes("bluedart") || c.includes("blue dart")) return `https://www.bluedart.com/tracking?trackFor=0&trackNo=${trackingId}`
+  if (c.includes("dtdc")) return `https://www.dtdc.in/tracking.asp?strCnno=${trackingId}`
+  if (c.includes("ekart")) return `https://ekartlogistics.com/shipmenttrack/${trackingId}`
+  if (c.includes("xpressbees")) return `https://www.xpressbees.com/track?awb=${trackingId}`
+  if (c.includes("fedex")) return `https://www.fedex.com/fedextrack/?trknbr=${trackingId}`
+  if (c.includes("dhl")) return `https://www.dhl.com/in-en/home/tracking.html?tracking-id=${trackingId}`
+  if (c.includes("india post") || c.includes("speed post")) return `https://www.indiapost.gov.in/_layouts/15/DOP.Portal.Tracking/TrackConsignment.aspx`
+  return null
+}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   pending:    { label: "Pending",    color: "bg-amber-100 text-amber-700",   icon: Clock },
@@ -35,6 +54,10 @@ export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [customerName, setCustomerName] = useState("")
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
+  const [cancelReason, setCancelReason] = useState("")
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState("")
 
   useEffect(() => {
     async function load() {
@@ -57,11 +80,29 @@ export default function MyOrdersPage() {
     load()
   }, [router])
 
-  async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
+  function openCancelDialog(order: Order) {
+    setCancelTarget(order)
+    setCancelReason("")
+    setCancelError("")
+  }
+
+  async function handleConfirmCancel() {
+    if (!cancelTarget) return
+    setCancelling(true)
+    setCancelError("")
+    const res = await cancelMyOrder(cancelTarget.id, cancelReason)
+    setCancelling(false)
+    if (!res.success) {
+      setCancelError(res.message)
+      return
+    }
+    // Reflect the change locally without a full reload
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === cancelTarget.id ? { ...o, status: "cancelled" } : o,
+      ),
+    )
+    setCancelTarget(null)
   }
 
   const statusConf = (status: string) =>
@@ -69,33 +110,6 @@ export default function MyOrdersPage() {
 
   return (
     <div className="min-h-screen bg-[#fdf6f2]">
-      {/* Header */}
-      <header className="border-b border-[#ead5c8] bg-white px-6 py-4 md:px-10">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link href="/">
-            <Image
-              src="https://res.cloudinary.com/df01whs60/image/upload/v1782242359/AURAFIRM_logo_PNG_160x_drciiz.avif"
-              alt="AURAFIRM logo"
-              width={130}
-              height={44}
-              className="h-10 w-auto object-contain"
-            />
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/cart" className="text-sm text-neutral-600 hover:text-[#c9744e]">
-              Continue Shopping
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:border-[#c9744e] hover:text-[#c9744e]"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="mx-auto max-w-5xl px-4 py-10 md:px-6">
         {/* Welcome */}
         <div className="mb-8">
@@ -103,7 +117,7 @@ export default function MyOrdersPage() {
             My Orders
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
-            Welcome back, <span className="font-medium text-[#c9744e]">{customerName}</span>. Track all your Aurafirm orders here.
+            Welcome back, <span className="font-medium text-[#c9744e]">{customerName}</span>. Track all your AURAFIRM orders here.
           </p>
         </div>
 
@@ -216,6 +230,79 @@ export default function MyOrdersPage() {
                           (order.shipping_address as Record<string, string>).pin,
                         ].filter(Boolean).join(", ")}
                       </div>
+
+                      {/* Tracking — shown once the order has shipped */}
+                      {(order.status === "shipped" || order.status === "delivered") &&
+                        (order.tracking_url || order.tracking_id) && (
+                          <div className="mt-4 rounded-xl border border-[#e3d0ef] bg-[#f7f0fc] p-4">
+                            <div className="flex items-center gap-2">
+                              <Truck className="h-4 w-4 text-purple-600" />
+                              <p className="text-sm font-semibold text-purple-800">
+                                {order.status === "delivered" ? "Delivered" : "Your order is on the way"}
+                              </p>
+                            </div>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-neutral-600">
+                              {order.carrier && (
+                                <span>
+                                  Carrier: <span className="font-semibold text-neutral-800">{order.carrier}</span>
+                                </span>
+                              )}
+                              {order.tracking_id && (
+                                <span>
+                                  Tracking ID:{" "}
+                                  <span className="font-semibold text-neutral-800">{order.tracking_id}</span>
+                                </span>
+                              )}
+                              {order.estimated_delivery && order.status !== "delivered" && (
+                                <span>
+                                  Est. delivery:{" "}
+                                  <span className="font-semibold text-neutral-800">
+                                    {new Date(order.estimated_delivery).toLocaleDateString("en-IN", {
+                                      day: "numeric", month: "short", year: "numeric",
+                                    })}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                            {(() => {
+                              const url =
+                                order.tracking_url ?? buildTrackingUrl(order.carrier, order.tracking_id)
+                              if (!url) return null
+                              return (
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-purple-700"
+                                >
+                                  Track Package
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              )
+                            })()}
+                          </div>
+                        )}
+
+                      {/* Cancellation reason — shown for cancelled orders */}
+                      {order.status === "cancelled" && order.cancellation_reason && (
+                        <div className="mt-4 rounded-xl border border-red-100 bg-red-50 p-4 text-xs text-red-700">
+                          <span className="font-semibold">Cancellation reason: </span>
+                          {order.cancellation_reason}
+                        </div>
+                      )}
+
+                      {/* Cancel action — only before the order ships */}
+                      {CANCELLABLE.includes(order.status) && (
+                        <div className="mt-4 flex justify-end border-t border-[#f0e2d8] pt-4">
+                          <button
+                            onClick={() => openCancelDialog(order)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:border-red-400 hover:bg-red-50"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            Cancel Order
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -224,6 +311,61 @@ export default function MyOrdersPage() {
           </div>
         )}
       </main>
+
+      {/* Cancel confirmation modal */}
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-neutral-900">Cancel this order?</h3>
+                <p className="mt-1 text-sm text-neutral-500">
+                  Order #{cancelTarget.order_number} will be cancelled. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="mb-1.5 block text-xs font-medium text-neutral-600">
+                Reason for cancellation <span className="text-neutral-400">(optional)</span>
+              </label>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                rows={3}
+                placeholder="Let us know why you're cancelling…"
+                className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2 text-sm text-neutral-800 outline-none focus:border-[#c9744e] focus:ring-1 focus:ring-[#c9744e]"
+              />
+            </div>
+
+            {cancelError && (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+                {cancelError}
+              </p>
+            )}
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => setCancelTarget(null)}
+                disabled={cancelling}
+                className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 disabled:opacity-50"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleConfirmCancel}
+                disabled={cancelling}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling…" : "Cancel Order"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
