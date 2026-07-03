@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import Navbar from "@/components/Navbar"
 import {
   ShoppingCart,
   Heart,
@@ -81,8 +80,6 @@ export default function CartPage({ suggestedProducts = [] }: { suggestedProducts
 
   return (
     <div className="min-h-screen bg-[#faf5f3] font-sans text-neutral-800">
-      <Navbar />
-
       {/* Main content */}
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         {/* Page heading */}
