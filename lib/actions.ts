@@ -225,6 +225,58 @@ export async function getMyOrders() {
   return data
 }
 
+// Statuses at which a customer is still allowed to cancel their own order.
+const CANCELLABLE_STATUSES = ['pending', 'processing']
+
+export async function cancelMyOrder(orderId: string, reason: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, message: 'You must be logged in to cancel an order.' }
+
+  // Fetch the order and verify it belongs to this customer
+  const { data: order, error: fetchErr } = await supabase
+    .from('orders')
+    .select('id, status, customer_id')
+    .eq('id', orderId)
+    .eq('customer_id', user.id)
+    .single()
+
+  if (fetchErr || !order) {
+    return { success: false, message: 'Order not found.' }
+  }
+
+  if (!CANCELLABLE_STATUSES.includes(order.status)) {
+    return {
+      success: false,
+      message: 'This order can no longer be cancelled because it has already been shipped.',
+    }
+  }
+
+  // Ownership already verified above via the user-scoped client (RLS select).
+  // Use the admin client for the write since there is no customer UPDATE policy,
+  // and constrain the update to this specific order + customer as defense in depth.
+  const now = new Date().toISOString()
+  const adminSupabase = createAdminClient()
+  const { error: updateErr } = await adminSupabase
+    .from('orders')
+    .update({
+      status: 'cancelled',
+      cancellation_reason: reason.trim() || null,
+      cancelled_at: now,
+      updated_at: now,
+    })
+    .eq('id', orderId)
+    .eq('customer_id', user.id)
+
+  if (updateErr) {
+    return { success: false, message: 'Something went wrong. Please try again.' }
+  }
+
+  revalidatePath('/account/orders')
+  revalidatePath('/admin/orders')
+  return { success: true, message: 'Your order has been cancelled.' }
+}
+
 // ─── Admin ───────────────────────────────────────────��─────────────────────────
 
 export async function adminGetOrders(filters?: {
