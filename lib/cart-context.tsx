@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
+import { toast } from "sonner"
 
 const STORAGE_KEY = "aurafirm_cart"
 
@@ -57,6 +58,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ? prev.map((i) => (i.id === newItem.id ? { ...i, quantity: i.quantity + 1 } : i))
         : [...prev, { ...newItem, quantity: 1 }]
       persist(next)
+      toast.success(existing ? `Added another ${newItem.name} to your cart` : `${newItem.name} added to your cart`, {
+        description: existing ? `Quantity updated to ${existing.quantity + 1}` : newItem.subtitle || undefined,
+      })
       return next
     })
   }, [])
