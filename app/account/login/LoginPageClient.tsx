@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { Lock, Phone, Eye, EyeOff, Leaf, ShieldCheck, FlaskConical, Sparkles } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { normalizePhone } from "@/lib/phone"
-import Navbar from "@/components/Navbar"
 
 const brandValues = [
   { icon: Leaf, title: "Vegan", sub: "100% Plant Powered" },
@@ -45,8 +44,6 @@ export default function CustomerLoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "#fdf6f2" }}>
-      <Navbar />
-
       {/* Main */}
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
         <h1 className="mb-1 text-3xl font-bold text-neutral-900">

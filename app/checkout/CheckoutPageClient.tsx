@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
 import { createOrder, validateCoupon } from "@/lib/actions"
-import SiteNavbar from "@/components/Navbar"
 
 declare global {
   interface Window {
@@ -312,8 +311,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-[#faf5f3] font-sans text-neutral-800">
-      <SiteNavbar />
-
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-8">
         {/* Heading + breadcrumb */}
         <div className="mb-6">

@@ -18,7 +18,6 @@ import {
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { getMyOrders, cancelMyOrder } from "@/lib/actions"
-import Navbar from "@/components/Navbar"
 
 // Order statuses at which the customer can still cancel (before it ships)
 const CANCELLABLE = ["pending", "processing"]
@@ -111,8 +110,6 @@ export default function MyOrdersPage() {
 
   return (
     <div className="min-h-screen bg-[#fdf6f2]">
-      <Navbar />
-
       <main className="mx-auto max-w-5xl px-4 py-10 md:px-6">
         {/* Welcome */}
         <div className="mb-8">

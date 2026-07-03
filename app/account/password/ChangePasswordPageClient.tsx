@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Lock, Eye, EyeOff, ShieldCheck, CheckCircle2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
-import Navbar from "@/components/Navbar"
 
 export default function ChangePasswordPageClient() {
   const router = useRouter()
@@ -85,8 +84,6 @@ export default function ChangePasswordPageClient() {
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "#fdf6f2" }}>
-      <Navbar />
-
       {/* Main */}
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
         <h1 className="mb-1 text-3xl font-bold text-neutral-900">
