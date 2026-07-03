@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   ExternalLink,
   AlertTriangle,
+  KeyRound,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { getMyOrders, cancelMyOrder } from "@/lib/actions"
@@ -131,8 +132,15 @@ export default function MyOrdersPage() {
             />
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/cart" className="text-sm text-neutral-600 hover:text-[#c9744e]">
+            <Link href="/cart" className="hidden text-sm text-neutral-600 hover:text-[#c9744e] sm:inline">
               Continue Shopping
+            </Link>
+            <Link
+              href="/account/password"
+              className="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:border-[#c9744e] hover:text-[#c9744e]"
+            >
+              <KeyRound className="h-3.5 w-3.5" />
+              Change Password
             </Link>
             <button
               onClick={handleLogout}
