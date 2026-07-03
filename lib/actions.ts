@@ -1,5 +1,6 @@
 'use server'
 
+import crypto from 'crypto'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { normalizePhone } from '@/lib/phone'
 import { revalidatePath } from 'next/cache'
@@ -206,6 +207,34 @@ export async function createOrder(payload: CreateOrderPayload) {
 
   revalidatePath('/account/orders')
   return { orderId: order.id, orderNumber, customerId }
+}
+
+// Verify a Razorpay payment signature server-side.
+// Razorpay signs `${razorpay_order_id}|${razorpay_payment_id}` with the key secret
+// using HMAC-SHA256. We recompute it and compare. Never trust a "paid" status from
+// the client without this check.
+export async function verifyRazorpayPayment(params: {
+  razorpayOrderId: string
+  razorpayPaymentId: string
+  razorpaySignature: string
+}) {
+  const secret = process.env.RAZORPAY_KEY_SECRET
+  if (!secret) {
+    console.error('[v0] RAZORPAY_KEY_SECRET is not set')
+    return { valid: false }
+  }
+
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(`${params.razorpayOrderId}|${params.razorpayPaymentId}`)
+    .digest('hex')
+
+  // Constant-time compare to avoid timing attacks
+  const a = Buffer.from(expected)
+  const b = Buffer.from(params.razorpaySignature)
+  const valid = a.length === b.length && crypto.timingSafeEqual(a, b)
+
+  return { valid }
 }
 
 // ─── Customer orders ───────────────────────────────────────────────────────────

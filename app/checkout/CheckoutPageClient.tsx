@@ -14,7 +14,7 @@ import {
   Package,
 } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
-import { createOrder, validateCoupon } from "@/lib/actions"
+import { createOrder, validateCoupon, verifyRazorpayPayment } from "@/lib/actions"
 
 declare global {
   interface Window {
@@ -212,8 +212,24 @@ export default function CheckoutPage() {
           contact: billing.phone,
         },
         theme: { color: "#c9744e" },
-        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string }) => {
+        // Force modal/handler mode. Without this, Razorpay can fall back to a
+        // full-page redirect that POSTs back to /checkout — a route that can't
+        // serve POST, producing a 404 after an otherwise-successful payment.
+        redirect: false,
+        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
           try {
+            // Verify the payment signature server-side before trusting it as paid
+            const { valid } = await verifyRazorpayPayment({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            })
+            if (!valid) {
+              setOrderError("Payment could not be verified. If money was deducted, it will be refunded. Please contact support.")
+              setPlacing(false)
+              return
+            }
+
             const shippingAddr = shipDifferent ? shipping : {
               fullName: billing.fullName, address: billing.address,
               apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin,
@@ -257,6 +273,10 @@ export default function CheckoutPage() {
       }
 
       const rzp = new window.Razorpay(options)
+      rzp.on("payment.failed", (resp: { error?: { description?: string } }) => {
+        setOrderError(resp?.error?.description || "Payment failed. Please try again.")
+        setPlacing(false)
+      })
       rzp.open()
     } catch (err) {
       setOrderError(err instanceof Error ? err.message : String(err))
