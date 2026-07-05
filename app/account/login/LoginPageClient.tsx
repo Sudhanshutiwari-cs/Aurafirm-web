@@ -31,7 +31,7 @@ export default function CustomerLoginPage() {
     const fakeEmail = `${digits}@aurafirm.customer`
     const { error: err } = await supabase.auth.signInWithPassword({
       email: fakeEmail,
-      password: digits,
+      password: digits,   // password is always the 10-digit normalized phone number
     })
     setLoading(false)
     if (err) {
