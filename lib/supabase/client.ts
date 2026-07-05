@@ -1,18 +1,12 @@
 import { createBrowserClient } from '@supabase/ssr'
-import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Module-level singleton — critical for session persistence.
-// A new createBrowserClient() instance starts with no cookies, so if a fresh
-// instance is created on every call the session that was just written after
-// login is invisible to the next component that calls getUser(), causing an
-// immediate redirect back to /account/login on every page load or refresh.
-let client: SupabaseClient | null = null
-
+// createBrowserClient is safe to call multiple times — it is stateless and
+// reads the session cookie from document.cookie on every call, which is
+// exactly what we need so the browser client stays in sync with the
+// server-side cookie written by middleware and server actions.
 export function createClient() {
-  if (client) return client
-  client = createBrowserClient(
+  return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
-  return client
 }

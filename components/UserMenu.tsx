@@ -26,27 +26,33 @@ export default function UserMenu({ iconClassName = "h-4 w-4" }: { iconClassName?
       setAuth((prev) => prev.status === "loading" ? { status: "guest" } : prev)
     }, 3000)
 
-    async function load() {
+    async function loadProfile(userId: string) {
       try {
-        const { data: { user }, error } = await supabase.auth.getUser()
-        if (error || !user) { setAuth({ status: "guest" }); return }
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name")
-          .eq("id", user.id)
+          .eq("id", userId)
           .single()
         setAuth({ status: "user", name: profile?.full_name ?? "Customer" })
       } catch {
-        setAuth({ status: "guest" })
+        setAuth({ status: "user", name: "Customer" })
       } finally {
         clearTimeout(fallback)
       }
     }
 
-    load()
+    // onAuthStateChange fires INITIAL_SESSION as soon as the client decodes
+    // its storage (cookie). This is the reliable way to read the session from
+    // the @supabase/ssr browser client without a separate getSession() call.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      clearTimeout(fallback)
+      if (!session) {
+        setAuth({ status: "guest" })
+        return
+      }
+      loadProfile(session.user.id)
+    })
 
-    // Keep in sync when session changes (login / logout in another tab)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load())
     return () => { subscription.unsubscribe(); clearTimeout(fallback) }
   }, [])
 
