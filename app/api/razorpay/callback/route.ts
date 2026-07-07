@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     let orderData: Record<string, unknown>
     try {
-      orderData = JSON.parse(Buffer.from(decodeURIComponent(rawPayload), "base64").toString("utf8"))
+      orderData = JSON.parse(new TextDecoder().decode(Buffer.from(decodeURIComponent(rawPayload), "base64")))
     } catch {
       console.error("[v0] callback: invalid order payload")
       return NextResponse.redirect(`${origin}/checkout?payment=failed`, 303)

@@ -214,7 +214,8 @@ export default function CheckoutPage() {
         fullName: billing.fullName, address: billing.address,
         apt: billing.apt, city: billing.city, state: billing.state, pin: billing.pin,
       }
-      const orderPayload = btoa(JSON.stringify({
+      // btoa() only handles Latin-1; use TextEncoder for safe UTF-8 → base64
+      const orderJson = JSON.stringify({
         customerName: billing.fullName,
         customerEmail: billing.email,
         customerPhone: `+91${billing.phone}`,
@@ -235,7 +236,10 @@ export default function CheckoutPage() {
           quantity: i.quantity,
           total: i.price * i.quantity,
         })),
-      }))
+      })
+      const orderPayload = btoa(
+        String.fromCharCode(...new TextEncoder().encode(orderJson))
+      )
 
       const options = {
         key: data.keyId,
