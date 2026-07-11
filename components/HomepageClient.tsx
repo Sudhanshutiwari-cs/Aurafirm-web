@@ -395,7 +395,17 @@ Shop <span className="border-b-4 border-[#e3a985] text-[#c9744e]">Our Wellness</
                     />
                   </div>
                   <p className="mt-3 text-sm font-medium text-neutral-700 group-hover:text-[#c9744e]">{p.name}</p>
-                  <p className="text-sm text-neutral-500">{`\u20B9${p.price.toLocaleString("en-IN")}`}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-neutral-900">{`\u20B9${p.price.toLocaleString("en-IN")}`}</span>
+                    {p.original_price && p.original_price > p.price && (
+                      <>
+                        <span className="text-xs text-neutral-400 line-through">{`\u20B9${p.original_price.toLocaleString("en-IN")}`}</span>
+                        <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                          {Math.round((1 - p.price / p.original_price) * 100)}% OFF
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </Link>
                 <div className="mt-2 flex items-center gap-2">
                   <button

@@ -230,10 +230,15 @@ export default function ProductPageClient({
 
             {/* Price */}
             <div className="mt-5">
-              <div className="flex items-baseline gap-3">
+              <div className="flex flex-wrap items-baseline gap-3">
                 <p className="text-3xl font-bold text-gray-900">&#8377;{product.price.toLocaleString("en-IN")}</p>
                 {product.original_price && product.original_price > product.price && (
-                  <p className="text-base text-gray-400 line-through">&#8377;{product.original_price.toLocaleString("en-IN")}</p>
+                  <>
+                    <p className="text-base text-gray-400 line-through">&#8377;{product.original_price.toLocaleString("en-IN")}</p>
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
+                      {Math.round((1 - product.price / product.original_price) * 100)}% OFF
+                    </span>
+                  </>
                 )}
               </div>
               <p className="mt-1 text-xs text-gray-500">(MRP. Inclusive of all taxes)</p>
