@@ -892,7 +892,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Order Drawer */}
+      {/* Order Draawer */}
       {selectedOrder && (
         <OrderDrawer
           order={selectedOrder}
